@@ -1,0 +1,382 @@
+app:
+  description: ''
+  icon: 🤖
+  icon_background: '#FFEAD5'
+  mode: workflow
+  name: レビューフォローワークフロー（稀代作）
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/gemini:0.1.3@74a18ba86ecea3cd6e37eae1a34829691556470d514169abd6a0bcbebecb8fa3
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/notion:0.0.1@5156ceb22a99c29985723b1b0bb6dd73cdf927a8ad8cc1c77c7424621166e753
+kind: app
+version: 0.1.5
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        image_file_size_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: ''
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: start
+        targetType: code
+      id: 1745758276756-source-1745758310744-target
+      source: '1745758276756'
+      sourceHandle: source
+      target: '1745758310744'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: tool
+      id: 1745758310744--1745758370898-target
+      source: '1745758310744'
+      sourceHandle: source
+      target: '1745758370898'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: tool
+        targetType: code
+      id: 1745758370898--1745758392276-target
+      source: '1745758370898'
+      sourceHandle: source
+      target: '1745758392276'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: llm
+      id: 1745758392276--1745758429430-target
+      source: '1745758392276'
+      sourceHandle: source
+      target: '1745758429430'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: llm
+        targetType: end
+      id: 1745758429430-source-1745758496710-target
+      source: '1745758429430'
+      sourceHandle: source
+      target: '1745758496710'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        desc: ''
+        selected: false
+        title: 開始
+        type: start
+        variables:
+        - label: notion_url
+          max_length: 256
+          options: []
+          required: true
+          type: text-input
+          variable: notion_url
+      height: 90
+      id: '1745758276756'
+      position:
+        x: 80
+        y: 282
+      positionAbsolute:
+        x: 80
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        code: "function extractNotionPageId(url) {\n  // NotionのURL形式のパターン\n  // 1.\
+          \ https://www.notion.so/pagename-{32文字ID}\n  // 2. https://www.notion.so/{32文字ID}\n\
+          \  // 3. https://www.notion.so/workspace/{32文字ID}\n  // 4. https://www.notion.so/workspace/pagename-{32文字ID}\n\
+          \  \n  // 32文字の16進数IDを探す正規表現\n  const hexRegex = /([a-f0-9]{32})/i;\n  const\
+          \ match = url.match(hexRegex);\n  \n  if (match && match[1]) {\n    return\
+          \ match[1];\n  }\n  \n  // UUIDフォーマット（ダッシュ付き）の正規表現\n  const uuidRegex =\
+          \ /([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/i;\n \
+          \ const uuidMatch = url.match(uuidRegex);\n  \n  if (uuidMatch && uuidMatch[1])\
+          \ {\n    return uuidMatch[1];\n  }\n  \n  // URLの最後のパス部分を取得する方法\n  const\
+          \ urlParts = url.split('/');\n  const lastPart = urlParts[urlParts.length\
+          \ - 1];\n  \n  // 最後のパスセグメントに含まれるIDを探す\n  if (lastPart && lastPart.length\
+          \ >= 32) {\n    const idMatch = lastPart.match(hexRegex);\n    if (idMatch\
+          \ && idMatch[1]) {\n      return idMatch[1];\n    }\n  }\n  \n  // どのパターンにも一致しない場合\n\
+          \  return null;\n}\n\nfunction main(arg) {\n    const url = arg.notion_url;\n\
+          \    if (!url || typeof url !== 'string') {\n      return { error: \"URLが指定されていないか、無効な形式です。\"\
+          \ };\n  }\n\n  const pageId = extractNotionPageId(url);\n\n  if (!pageId)\
+          \ {\n    return { error: \"NotionのページIDを抽出できませんでした。有効なNotionのURLを入力してください。\"\
+          \ };\n  }\n\n    return {\n        result: pageId\n    }\n}"
+        code_language: javascript
+        desc: ''
+        outputs:
+          result:
+            children: null
+            type: string
+        selected: false
+        title: コード実行
+        type: code
+        variables:
+        - value_selector:
+          - '1745758276756'
+          - notion_url
+          variable: notion_url
+      height: 54
+      id: '1745758310744'
+      position:
+        x: 384
+        y: 282
+      positionAbsolute:
+        x: 384
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: ''
+        is_team_authorization: true
+        output_schema: null
+        paramSchemas:
+        - auto_generate: null
+          default: null
+          form: llm
+          human_description:
+            en_US: The ID of the Notion page to retrieve
+            ja_JP: 取得する Notion ページの ID
+            pt_BR: O ID da página do Notion a ser recuperada
+            zh_Hans: 要获取的 Notion 页面的 ID
+          label:
+            en_US: Page ID
+            ja_JP: ページ ID
+            pt_BR: ID da Página
+            zh_Hans: 页面 ID
+          llm_description: The ID of the Notion page to retrieve. This can be found
+            in the page URL after the workspace name and slash, usually ending with
+            a hyphen and random characters.
+          max: null
+          min: null
+          name: page_id
+          options: []
+          placeholder: null
+          precision: null
+          required: true
+          scope: null
+          template: null
+          type: string
+        - auto_generate: null
+          default: 1
+          form: llm
+          human_description:
+            en_US: Whether to include the page content in the response
+            ja_JP: レスポンスにページコンテンツを含めるかどうか
+            pt_BR: Se deve incluir o conteúdo da página na resposta
+            zh_Hans: 是否在响应中包含页面内容
+          label:
+            en_US: Include Content
+            ja_JP: コンテンツを含める
+            pt_BR: Incluir Conteúdo
+            zh_Hans: 包含内容
+          llm_description: Whether to include the page blocks/content in the response.
+            If set to false, only page properties will be returned.
+          max: null
+          min: null
+          name: include_content
+          options: []
+          placeholder: null
+          precision: null
+          required: false
+          scope: null
+          template: null
+          type: boolean
+        params:
+          include_content: ''
+          page_id: ''
+        provider_id: langgenius/notion/notion
+        provider_name: langgenius/notion/notion
+        provider_type: builtin
+        selected: false
+        title: Retrieve Notion Page
+        tool_configurations: {}
+        tool_label: Retrieve Notion Page
+        tool_name: retrieve_page
+        tool_parameters:
+          page_id:
+            type: mixed
+            value: '{{#1745758310744.result#}}'
+        type: tool
+      height: 54
+      id: '1745758370898'
+      position:
+        x: 688
+        y: 282
+      positionAbsolute:
+        x: 688
+        y: 282
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        code: "\nfunction main(arg1) {\n    const content = arg1.arg1[0].content;\n\
+          \    return {\n        result: content.map(item => item.text)\n        \
+          \    .filter(text => text !== undefined)\n            .join(\"\\n\")\n \
+          \   }\n}\n"
+        code_language: javascript
+        desc: ''
+        outputs:
+          result:
+            children: null
+            type: string
+        selected: false
+        title: コード実行 2
+        type: code
+        variables:
+        - value_selector:
+          - '1745758370898'
+          - json
+          variable: arg1
+      height: 54
+      id: '1745758392276'
+      position:
+        x: 992
+        y: 282
+      positionAbsolute:
+        x: 992
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - '1745758392276'
+          - result
+        desc: ''
+        model:
+          completion_params: {}
+          mode: chat
+          name: gemini-2.0-flash
+          provider: langgenius/gemini/google
+        prompt_template:
+        - role: system
+          text: "あなたは技術記事の広報観点からのレビューを行う専門家です。以下の観点から記事を分析し、明確な評価とフィードバックを提供してください:\n\
+            \n1. 炎上リスク評価:\n   - 技術的観点で誤解を招く可能性がある表現\n   - 差別的・攻撃的な表現\n   - 法的問題となる可能性のある記述\n\
+            \   \n2. 会社へのネガティブインパクト評価:\n   - 企業イメージを損なう可能性のある表現\n   - 機密情報・競合情報の漏洩リスク\n\
+            \   - ブランドガイドラインとの整合性\n   \n3. 改善提案:\n   - 検出した問題点の修正案\n   - より適切な表現の提案\n\
+            \   \n評価は各カテゴリで「低リスク」「中リスク」「高リスク」で評価し、具体的な根拠と改善提案を示してください。"
+        - role: user
+          text: '{{#context#}}
+
+            上記が記事の内容です'
+        selected: false
+        title: LLM
+        type: llm
+        variables: []
+        vision:
+          enabled: false
+      height: 90
+      id: '1745758429430'
+      position:
+        x: 1296
+        y: 282
+      positionAbsolute:
+        x: 1296
+        y: 282
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: ''
+        outputs:
+        - value_selector:
+          - '1745758429430'
+          - text
+          variable: result
+        selected: false
+        title: 終了
+        type: end
+      height: 90
+      id: '1745758496710'
+      position:
+        x: 1600
+        y: 282
+      positionAbsolute:
+        x: 1600
+        y: 282
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    viewport:
+      x: 69.89151150227298
+      y: 110.38971124058077
+      zoom: 0.851834438773232
